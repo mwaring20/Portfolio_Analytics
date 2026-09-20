@@ -1,0 +1,66 @@
+# Manually-verified security classifications.
+#
+# Being listed here means a human has confirmed this security's
+# classification — so resolution treats it as authoritative: no API
+# call, no heuristic, no needs_review flag.
+#
+# ACCURACY NOTE: these entries (name, CUSIP, asset_class) were populated
+# from general knowledge during the initial build of this table, not
+# independently cross-checked against an authoritative source (the
+# fund's own prospectus/fact sheet or a paid reference data feed) in
+# that session. Being in this table means "trusted, no further checks" —
+# that's a stronger claim than the heuristic path's needs_review flag,
+# so verify each entry at least once against an authoritative source
+# before relying on it for anything client-facing, then this note can
+# be removed for entries you've confirmed.
+#
+# asset_class must be one of: Equity, Fixed Income, Cash, Alternative,
+# Multi-Asset (see security_master.AssetClass).
+
+VTI:
+  cusip: "922908363"
+  name: "Vanguard Total Stock Market ETF"
+  security_type: ETF
+  asset_class: Equity
+  sub_asset_class: "US Total Market"
+  geography: US
+
+VOO:
+  cusip: "922908769"
+  name: "Vanguard S&P 500 ETF"
+  security_type: ETF
+  asset_class: Equity
+  sub_asset_class: "US Large Cap"
+  geography: US
+
+BND:
+  cusip: "921937835"
+  name: "Vanguard Total Bond Market ETF"
+  security_type: ETF
+  asset_class: Fixed Income
+  sub_asset_class: "US Aggregate Bond"
+  geography: US
+
+SCHD:
+  cusip: "808524797"
+  name: "Schwab U.S. Dividend Equity ETF"
+  security_type: ETF
+  asset_class: Equity
+  sub_asset_class: "US Dividend"
+  geography: US
+
+AGG:
+  cusip: "464287200"
+  name: "iShares Core U.S. Aggregate Bond ETF"
+  security_type: ETF
+  asset_class: Fixed Income
+  sub_asset_class: "US Aggregate Bond"
+  geography: US
+
+VXUS:
+  cusip: "922908645"
+  name: "Vanguard Total International Stock ETF"
+  security_type: ETF
+  asset_class: Equity
+  sub_asset_class: "International Developed + Emerging"
+  geography: Global ex-US

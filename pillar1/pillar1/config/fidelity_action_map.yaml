@@ -1,0 +1,39 @@
+# Fidelity per-account History export — "Action" column -> canonical txn_type
+#
+# Fidelity's Action column is free text ("YOU BOUGHT VOO"), so this is
+# prefix-matched, not exact-matched — ORDER MATTERS, first match wins.
+# Any raw action matching no prefix here maps to UNKNOWN with
+# needs_review=True automatically (see pillar1/type_mapping.py).
+#
+# To add a newly-observed Fidelity action: add an entry (in the right
+# position relative to any overlapping prefixes) and re-run the adapter.
+# No code change needed.
+
+- prefix: "YOU BOUGHT"
+  txn_type: BUY
+  needs_review: false
+
+- prefix: "YOU SOLD"
+  txn_type: SELL
+  needs_review: false
+
+- prefix: "REINVESTMENT"
+  txn_type: REINVEST
+  needs_review: false
+
+- prefix: "DIRECT DEBIT ADVISORY FEE"
+  txn_type: FEE
+  needs_review: false
+
+- prefix: "DIVIDEND RECEIVED"
+  txn_type: DIVIDEND
+  needs_review: false
+
+- prefix: "INTEREST EARNED"
+  txn_type: INTEREST
+  needs_review: false
+
+- prefix: "TRANSFERRED FROM ACCT"
+  txn_type: TRANSFER_IN_KIND
+  needs_review: true
+  review_reason: "In-kind security transfer — no price/amount provided; valuation depends on Phase 2 price history"

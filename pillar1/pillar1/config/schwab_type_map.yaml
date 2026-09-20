@@ -1,0 +1,42 @@
+# Schwab advisor/master export — "Type" column -> canonical txn_type
+#
+# Exact match against the raw "Type" field. Any raw type not listed here
+# maps to UNKNOWN with needs_review=True automatically (see
+# pillar1/type_mapping.py) — you never need an "else" entry.
+#
+# To add a newly-observed Schwab type: add an entry here and re-run the
+# adapter. No code change needed.
+
+Buy:
+  txn_type: BUY
+  needs_review: false
+
+Sell:
+  txn_type: SELL
+  needs_review: false
+
+Qualified Dividend:
+  txn_type: DIVIDEND
+  needs_review: false
+
+Reinvest Shares:
+  txn_type: REINVEST
+  needs_review: false
+
+Service Fee:
+  txn_type: FEE
+  needs_review: false
+
+Bank Interest:
+  txn_type: INTEREST
+  needs_review: false
+
+Stock Split:
+  txn_type: STOCK_SPLIT
+  needs_review: true
+  review_reason: "Stock split — requires manual share-quantity/cost-basis adjustment, not a standard buy/sell"
+
+Journal:
+  txn_type: JOURNAL_CASH
+  needs_review: true
+  review_reason: "Inter-account cash transfer — account-level vs. household-level MWR treatment is a Phase 3 decision"
