@@ -138,3 +138,103 @@ CUSTODIAN_POSITIONS_DECIMAL_COLUMNS = ["quantity", "market_value"]
 # row.
 CUSTODIAN_POSITIONS_REQUIRED_COLUMNS = list(CUSTODIAN_POSITIONS_COLUMNS)
 
+
+# --- prices_df contract (Phase 2) ------------------------------------------
+#
+# Historical price data for securities. Used by the valuation engine to mark
+# positions to market. Both close_price (price return) and adj_close (total
+# return with dividends reinvested) are required per the architecture doc.
+
+PRICES_COLUMNS = [
+    "security_id",
+    "date",
+    "close_price",
+    "adj_close",
+]
+
+PRICES_DECIMAL_COLUMNS = ["close_price", "adj_close"]
+
+PRICES_REQUIRED_COLUMNS = list(PRICES_COLUMNS)
+
+
+# --- daily_positions_df contract (Phase 2) ----------------------------------
+#
+# Derived: transactions rolled forward, marked to prices. This is the primary
+# source of truth for portfolio valuation and return calculations.
+
+DAILY_POSITIONS_COLUMNS = [
+    "account_id",
+    "security_id",
+    "date",
+    "quantity",
+    "market_value",
+    "price",
+]
+
+DAILY_POSITIONS_DECIMAL_COLUMNS = ["quantity", "market_value", "price"]
+
+DAILY_POSITIONS_REQUIRED_COLUMNS = list(DAILY_POSITIONS_COLUMNS)
+
+
+# --- cash_flows_df contract (Phase 3) ---------------------------------------
+#
+# Derived: external flows extracted from transactions. Feeds MWR/XIRR.
+# Per architecture doc: fees should NOT appear as cash flows (already
+# reflected in ending value); use actual effective date not batch date.
+
+CASH_FLOWS_COLUMNS = [
+    "account_id",
+    "date",
+    "amount",
+    "flow_type",
+]
+
+CASH_FLOWS_DECIMAL_COLUMNS = ["amount"]
+
+CASH_FLOWS_REQUIRED_COLUMNS = list(CASH_FLOWS_COLUMNS)
+
+# Flow types for cash flow classification
+FLOW_TYPES = {
+    "DEPOSIT",      # External cash coming in
+    "WITHDRAWAL",   # External cash going out
+    "DIVIDEND",     # Dividend payments (may be reinvested or paid out)
+    "INTEREST",     # Interest payments
+    "FEE",          # Advisory/management fees (excluded from MWR by default)
+    "TRANSFER_IN",  # Transfer from another account
+    "TRANSFER_OUT", # Transfer to another account
+}
+
+
+# --- benchmark_prices_df contract (Phase 5) ---------------------------------
+#
+# Composite benchmark constructed from BenchmarkDefinition. Total return
+# index data (dividends reinvested), not price-only.
+
+BENCHMARK_PRICES_COLUMNS = [
+    "benchmark_id",
+    "date",
+    "level",
+    "total_return_level",
+]
+
+BENCHMARK_PRICES_DECIMAL_COLUMNS = ["level", "total_return_level"]
+
+BENCHMARK_PRICES_REQUIRED_COLUMNS = list(BENCHMARK_PRICES_COLUMNS)
+
+
+# --- returns_df contract (Phase 4, referenced in Phase 5) --------------------
+#
+# Long/tidy format — one table for account, composite, and benchmark returns.
+
+RETURNS_COLUMNS = [
+    "entity_id",
+    "entity_type",  # "account", "composite", "benchmark"
+    "date",
+    "period_return",
+    "cumulative_return",
+]
+
+RETURNS_DECIMAL_COLUMNS = ["period_return", "cumulative_return"]
+
+RETURNS_REQUIRED_COLUMNS = list(RETURNS_COLUMNS)
+

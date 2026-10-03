@@ -17,10 +17,26 @@ import pandas as pd
 
 from .canonical_schema import (
     ALWAYS_REQUIRED_COLUMNS,
+    BENCHMARK_PRICES_COLUMNS,
+    BENCHMARK_PRICES_DECIMAL_COLUMNS,
+    BENCHMARK_PRICES_REQUIRED_COLUMNS,
+    CASH_FLOWS_COLUMNS,
+    CASH_FLOWS_DECIMAL_COLUMNS,
+    CASH_FLOWS_REQUIRED_COLUMNS,
     CUSTODIAN_POSITIONS_COLUMNS,
     CUSTODIAN_POSITIONS_DECIMAL_COLUMNS,
     CUSTODIAN_POSITIONS_REQUIRED_COLUMNS,
+    DAILY_POSITIONS_COLUMNS,
+    DAILY_POSITIONS_DECIMAL_COLUMNS,
+    DAILY_POSITIONS_REQUIRED_COLUMNS,
     DECIMAL_COLUMNS,
+    FLOW_TYPES,
+    PRICES_COLUMNS,
+    PRICES_DECIMAL_COLUMNS,
+    PRICES_REQUIRED_COLUMNS,
+    RETURNS_COLUMNS,
+    RETURNS_DECIMAL_COLUMNS,
+    RETURNS_REQUIRED_COLUMNS,
     TRANSACTIONS_COLUMNS,
     TXN_TYPES,
     TYPES_WITHOUT_AMOUNT_OK,
@@ -117,5 +133,167 @@ def validate_custodian_positions_df(df: pd.DataFrame) -> List[str]:
                     violations.append(
                         f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
                     )
+
+    return violations
+
+
+def validate_prices_df(df: pd.DataFrame) -> List[str]:
+    """
+    Contract validator for prices_df (Phase 2).
+    """
+    violations: List[str] = []
+
+    if list(df.columns) != PRICES_COLUMNS:
+        violations.append(
+            f"Column mismatch. Expected {PRICES_COLUMNS}, got {list(df.columns)}"
+        )
+        return violations
+
+    for idx, row in df.iterrows():
+        loc = f"row {idx} (security_id={row.get('security_id')!r}, date={row.get('date')!r})"
+
+        for col in PRICES_REQUIRED_COLUMNS:
+            if pd.isna(row[col]):
+                violations.append(f"{loc}: required column '{col}' is null")
+
+        for col in PRICES_DECIMAL_COLUMNS:
+            val = row[col]
+            if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                if not isinstance(val, Decimal):
+                    violations.append(
+                        f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
+                    )
+
+    return violations
+
+
+def validate_daily_positions_df(df: pd.DataFrame) -> List[str]:
+    """
+    Contract validator for daily_positions_df (Phase 2).
+    """
+    violations: List[str] = []
+
+    if list(df.columns) != DAILY_POSITIONS_COLUMNS:
+        violations.append(
+            f"Column mismatch. Expected {DAILY_POSITIONS_COLUMNS}, got {list(df.columns)}"
+        )
+        return violations
+
+    for idx, row in df.iterrows():
+        loc = f"row {idx} (account_id={row.get('account_id')!r}, security_id={row.get('security_id')!r}, date={row.get('date')!r})"
+
+        for col in DAILY_POSITIONS_REQUIRED_COLUMNS:
+            if pd.isna(row[col]):
+                violations.append(f"{loc}: required column '{col}' is null")
+
+        for col in DAILY_POSITIONS_DECIMAL_COLUMNS:
+            val = row[col]
+            if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                if not isinstance(val, Decimal):
+                    violations.append(
+                        f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
+                    )
+
+    return violations
+
+
+def validate_cash_flows_df(df: pd.DataFrame) -> List[str]:
+    """
+    Contract validator for cash_flows_df (Phase 3).
+    """
+    violations: List[str] = []
+
+    if list(df.columns) != CASH_FLOWS_COLUMNS:
+        violations.append(
+            f"Column mismatch. Expected {CASH_FLOWS_COLUMNS}, got {list(df.columns)}"
+        )
+        return violations
+
+    for idx, row in df.iterrows():
+        loc = f"row {idx} (account_id={row.get('account_id')!r}, date={row.get('date')!r})"
+
+        for col in CASH_FLOWS_REQUIRED_COLUMNS:
+            if pd.isna(row[col]):
+                violations.append(f"{loc}: required column '{col}' is null")
+
+        for col in CASH_FLOWS_DECIMAL_COLUMNS:
+            val = row[col]
+            if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                if not isinstance(val, Decimal):
+                    violations.append(
+                        f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
+                    )
+
+        # flow_type must be in canonical FLOW_TYPES
+        if row["flow_type"] not in FLOW_TYPES:
+            violations.append(
+                f"{loc}: flow_type {row['flow_type']!r} not in canonical FLOW_TYPES"
+            )
+
+    return violations
+
+
+def validate_benchmark_prices_df(df: pd.DataFrame) -> List[str]:
+    """
+    Contract validator for benchmark_prices_df (Phase 5).
+    """
+    violations: List[str] = []
+
+    if list(df.columns) != BENCHMARK_PRICES_COLUMNS:
+        violations.append(
+            f"Column mismatch. Expected {BENCHMARK_PRICES_COLUMNS}, got {list(df.columns)}"
+        )
+        return violations
+
+    for idx, row in df.iterrows():
+        loc = f"row {idx} (benchmark_id={row.get('benchmark_id')!r}, date={row.get('date')!r})"
+
+        for col in BENCHMARK_PRICES_REQUIRED_COLUMNS:
+            if pd.isna(row[col]):
+                violations.append(f"{loc}: required column '{col}' is null")
+
+        for col in BENCHMARK_PRICES_DECIMAL_COLUMNS:
+            val = row[col]
+            if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                if not isinstance(val, Decimal):
+                    violations.append(
+                        f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
+                    )
+
+    return violations
+
+
+def validate_returns_df(df: pd.DataFrame) -> List[str]:
+    """
+    Contract validator for returns_df (Phase 4/5).
+    """
+    violations: List[str] = []
+
+    if list(df.columns) != RETURNS_COLUMNS:
+        violations.append(
+            f"Column mismatch. Expected {RETURNS_COLUMNS}, got {list(df.columns)}"
+        )
+        return violations
+
+    for idx, row in df.iterrows():
+        loc = f"row {idx} (entity_id={row.get('entity_id')!r}, date={row.get('date')!r})"
+
+        for col in RETURNS_REQUIRED_COLUMNS:
+            if pd.isna(row[col]):
+                violations.append(f"{loc}: required column '{col}' is null")
+
+        for col in RETURNS_DECIMAL_COLUMNS:
+            val = row[col]
+            if val is not None and not (isinstance(val, float) and pd.isna(val)):
+                if not isinstance(val, Decimal):
+                    violations.append(
+                        f"{loc}: column '{col}' is {type(val).__name__}, expected Decimal"
+                    )
+
+        # entity_type must be one of the allowed values
+        if row["entity_type"] not in ["account", "composite", "benchmark"]:
+            violations.append(
+                f"{loc}: entity_type {row['entity_type']!r} not in allowed values (account, composite, benchmark)"
+            )
 
     return violations

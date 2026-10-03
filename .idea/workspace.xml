@@ -4,8 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d63cc28b-61c8-4d3c-8d72-717f23028206" name="Changes" comment="Initialize project">
+    <list default="true" id="d63cc28b-61c8-4d3c-8d72-717f23028206" name="Changes" comment="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pillar1-build-plan.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pillar1/pillar1/canonical_schema.py" beforeDir="false" afterPath="$PROJECT_DIR$/pillar1/pillar1/canonical_schema.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pillar1/pillar1/validation.py" beforeDir="false" afterPath="$PROJECT_DIR$/pillar1/pillar1/validation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pillar1/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/pillar1/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/portfolio-analytics-updated-plan.pdf" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,11 +20,25 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;mwaring20&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/mwaring20/Portfolio_Analytics&quot;,
+    &quot;accountId&quot;: &quot;4469f333-7938-4186-b302-8876dcc67824&quot;
+  }
+}</component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="3JH1ZDRq2X4QFWzT84wEjQGWJcw" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -29,14 +48,16 @@
     &quot;Python.canonical_schema.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Portfolio_Analytics/Portfolio_Analytics&quot;
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/warin/codeium-2.12.27.zip&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
 }</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-50da183f06c8-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.13135.95" />
+        <option value="bundled-python-sdk-0978a7220b69-9867c7d4c0a4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-253.28294.336" />
       </set>
     </attachedChunks>
   </component>
@@ -65,12 +86,29 @@
       <option name="project" value="LOCAL" />
       <updated>1789303662803</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1">
+      <option name="closed" value="true" />
+      <created>1789930734657</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1789930734658</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1">
+      <option name="closed" value="true" />
+      <created>1789930773634</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1789930773634</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initialize project" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initialize project" />
+    <MESSAGE value="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1" />
+    <option name="LAST_COMMIT_MESSAGE" value="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
