@@ -1,4 +1,6 @@
-# Pillar 1 — Portfolio Analytics: Phase 0 & Phase 1 (hardened)
+# Pillar 1 — Portfolio Analytics
+
+A comprehensive portfolio analytics system with 15 phases covering data ingestion, valuation, performance measurement, risk analysis, and compliance recordkeeping.
 
 ## Setup
 

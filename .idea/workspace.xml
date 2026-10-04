@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d63cc28b-61c8-4d3c-8d72-717f23028206" name="Changes" comment="Pillar 1 updates, adding up to phase 14 of pillar 1">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Portfolio Analytics Venture - Business Plan.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pillar1-build-plan.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pillar1/pillar1/risk_contribution.py" beforeDir="false" afterPath="$PROJECT_DIR$/pillar1/pillar1/risk_contribution.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pillar1/tests/test_risk_contribution.py" beforeDir="false" afterPath="$PROJECT_DIR$/pillar1/tests/test_risk_contribution.py" afterDir="false" />
-    </list>
+    <list default="true" id="d63cc28b-61c8-4d3c-8d72-717f23028206" name="Changes" comment="Pillar 1 updates, finalized Pillar 1 pending needed updates based on future pillars" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -117,7 +111,15 @@
       <option name="project" value="LOCAL" />
       <updated>1791020436518</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Pillar 1 updates, finalized Pillar 1 pending needed updates based on future pillars">
+      <option name="closed" value="true" />
+      <created>1791102650611</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1791102650611</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -125,7 +127,8 @@
     <MESSAGE value="Pillar 1 hardening pass, adding checks and punching up phases 0 &amp; 1" />
     <MESSAGE value="Pillar 1 updates, adding up to phase 14 of pillar 1 plus pillar 1 build plan and overall business plan" />
     <MESSAGE value="Pillar 1 updates, adding up to phase 14 of pillar 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="Pillar 1 updates, adding up to phase 14 of pillar 1" />
+    <MESSAGE value="Pillar 1 updates, finalized Pillar 1 pending needed updates based on future pillars" />
+    <option name="LAST_COMMIT_MESSAGE" value="Pillar 1 updates, finalized Pillar 1 pending needed updates based on future pillars" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
