@@ -108,34 +108,291 @@ When a real snapshot file is available, see `adapters/positions.py`'s
 docstring for the next steps (same manifest-driven TDD pattern as
 Phase 0's transaction adapters).
 
+## Phase 2 — Valuation Engine
+
+```python
+from pillar1.valuation import ValuationEngine
+
+engine = ValuationEngine()
+daily_positions_df = engine.compute_daily_positions(
+    transactions_df,
+    prices_df,
+)
+```
+
+Rolls transactions forward and marks to market using price data. Handles missing prices with forward-filling and flags data gaps.
+
+## Phase 3 — Cash Flow Extraction
+
+```python
+from pillar1.cash_flows import CashFlowExtractor
+
+extractor = CashFlowExtractor()
+cash_flows_df = extractor.extract_cash_flows(
+    transactions_df,
+    include_fees=False,
+    household_level=True,
+)
+```
+
+Classifies cash flows into DEPOSIT, WITHDRAWAL, DIVIDEND, INTEREST, FEE, TRANSFER_IN, TRANSFER_OUT.
+
+## Phase 4 — Returns Engine
+
+```python
+from pillar1.returns import ReturnsEngine
+
+engine = ReturnsEngine()
+twr = engine.compute_twr(daily_positions_df)
+mwr = engine.compute_mwr(daily_positions_df, cash_flows_df)
+ytd_return = engine.compute_period_return(daily_positions_df, "YTD")
+```
+
+Computes Time-Weighted Returns (TWR) via chain-linking and Money-Weighted Returns (MWR/XIRR) via Newton-Raphson solver.
+
+## Phase 5 — Benchmark Engine
+
+```python
+from pillar1.benchmark import BenchmarkEngine
+
+engine = BenchmarkEngine()
+benchmark_prices_df = engine.construct_benchmark(
+    benchmark_definition,
+    component_prices_df,
+)
+```
+
+Constructs single and composite benchmark price series with rebalancing logic and total return calculations.
+
+## Phase 6 — Period Return Aggregation
+
+Integrated into Phase 4 — supports MTD, QTD, YTD, 1Y, 3Y, 5Y, since-inception returns.
+
+## Phase 7 — Portfolio Construction Analysis
+
+```python
+from pillar1.portfolio_analysis import PortfolioAnalyzer
+
+analyzer = PortfolioAnalyzer()
+allocation = analyzer.compute_allocation_breakdown(
+    daily_positions_df,
+    security_master,
+    group_by="asset_class",
+)
+concentration_flags = analyzer.check_concentration_risk(
+    daily_positions_df,
+    security_master,
+)
+fee_drag = analyzer.compute_fee_drag(daily_positions_df, security_master)
+```
+
+Allocation breakdown, concentration risk flags, and fee drag analysis.
+
+## Phase 8 — Attribution
+
+```python
+from pillar1.attribution import AttributionEngine
+
+engine = AttributionEngine()
+result = engine.compute_attribution(
+    portfolio_returns_df,
+    benchmark_returns_df,
+    portfolio_weights_df,
+    benchmark_weights_df,
+    category="sector",
+)
+```
+
+Brinson-Fachler decomposition (allocation, selection, interaction effects).
+
+## Phase 9 — Risk Metrics Core
+
+```python
+from pillar1.risk_metrics import RiskMetricsEngine
+
+engine = RiskMetricsEngine()
+metrics = engine.compute_all_metrics(
+    returns_df,
+    benchmark_returns_df,
+    risk_free_rate=Decimal("0.02"),
+)
+```
+
+Volatility, Sharpe ratio, Sortino ratio, max drawdown, beta, alpha, tracking error, information ratio.
+
+## Phase 10 — Correlation Matrix
+
+```python
+from pillar1.correlation import CorrelationEngine
+
+engine = CorrelationEngine()
+correlation_matrix = engine.compute_correlation_matrix(
+    daily_positions_df,
+    prices_df,
+    lookback_window=LookbackWindow.ONE_YEAR,
+)
+```
+
+Correlation across holdings with configurable lookback windows (1M, 3M, 1Y, 3Y).
+
+## Phase 11 — VaR / CVaR
+
+```python
+from pillar1.risk_contribution import RiskContributionEngine
+
+engine = RiskContributionEngine()
+decomposition = engine.compute_risk_contribution(
+    daily_positions_df,
+    correlation_matrix,
+    monthly_returns_df,
+)
+```
+
+- **Historical VaR**: Empirical percentile of 10 years of monthly returns (120 data points)
+- **Parametric VaR**: Analytic using correlation matrix and weights
+- **CVaR**: Expected Shortfall from lowest 5% of returns
+- **Marginal VaR**: Change in portfolio VaR from position size change
+- **Component VaR**: Position's contribution to portfolio VaR
+
+## Phase 12 — Scenario & Stress Testing
+
+```python
+from pillar1.stress_testing import StressTestEngine
+
+engine = StressTestEngine()
+results = engine.run_all_standard_scenarios(
+    daily_positions_df,
+    security_master,
+    as_of_date=date(2024, 1, 31),
+)
+```
+
+Predefined scenarios: 2008 Crisis, Rate Hike, Tech Crash, COVID-19, Inflation Spike. Custom scenarios supported.
+
+## Phase 13 — Fama-French Factor Exposure
+
+```python
+from pillar1.fama_french import FamaFrenchEngine
+
+engine = FamaFrenchEngine()
+result = engine.run_regression(
+    returns_df,
+    factor_returns_df,  # Mkt-RF, SMB, HML from Ken French Data Library
+    entity_id="ACC001",
+    entity_type="account",
+    lookback_months=36,
+)
+```
+
+Multiple linear regression against factor returns with R², t-statistics, and p-values.
+
+## Phase 14 — Monte Carlo Simulation
+
+```python
+from pillar1.monte_carlo import MonteCarloEngine
+
+engine = MonteCarloEngine()
+result = engine.run_simulation(
+    initial_value=Decimal("100000"),
+    expected_returns={"Equity": Decimal("0.08"), "Fixed Income": Decimal("0.04")},
+    volatilities={"Equity": Decimal("0.15"), "Fixed Income": Decimal("0.05")},
+    correlation_matrix=correlation_matrix,
+    weights={"Equity": Decimal("0.6"), "Fixed Income": Decimal("0.4")},
+    num_years=30,
+    num_paths=1000,
+)
+```
+
+Probability cone of outcomes using Cholesky decomposition for correlated returns. Retirement readiness simulation with cash flow modeling (contributions/withdrawals).
+
+## Phase 15 — Compliance Recordkeeping
+
+```python
+from pillar1.compliance import log_analytics_run, get_audit_logger
+
+event = log_analytics_run(
+    analytics_type=EventType.VALUATION,
+    description="Portfolio valuation run",
+    inputs={"account_id": "ACC001"},
+    outputs={"total_value": 100000},
+)
+
+logger = get_audit_logger()
+export = logger.export_audit_trail()
+```
+
+Append-only audit trail with SHA-256 checksums for integrity verification. Evidence snapshots for data retention.
+
 ## Package layout
 
 ```
 pillar1/
-  canonical_schema.py       transactions_df + custodian_positions_df contracts
-  parsing.py                  Decimal-only money/quantity/date parsing
-  type_mapping.py             config-driven transaction-type mapping loader
-  validation.py                 contract validators (transactions + positions)
-  reconciliation.py             human-readable reconciliation report
-  run_reconciliation.py         CLI for the reconciliation report
-  security_master.py            Pydantic SecurityMaster model + AssetClass (incl. PENDING_REVIEW)
-  security_resolution.py        CUSIP-first/ticker-fallback resolution + classification
-  security_seed.py              manually-verified seed table loader
-  ingest.py                      Phase 0 -> Phase 1 orchestration
+  canonical_schema.py       DataFrame contracts (transactions, prices, positions, returns, etc.)
+  validation.py             Contract validators for all DataFrame types
+  parsing.py                Decimal-only money/quantity/date parsing
+  type_mapping.py           Config-driven transaction-type mapping loader
+
+  # Phases 0-1
+  security_master.py        Pydantic SecurityMaster model + AssetClass
+  security_resolution.py    CUSIP-first/ticker-fallback resolution
+  security_seed.py          Seed table loader
+  ingest.py                 Phase 0 -> Phase 1 orchestration
+
+  # Phase 2
+  valuation.py              ValuationEngine for daily positions
+  position_reconciliation.py Reconciliation against custodian snapshots
+
+  # Phase 3-4
+  cash_flows.py             CashFlowExtractor
+  returns.py                ReturnsEngine (TWR, MWR, period returns)
+
+  # Phase 5
+  benchmark.py              BenchmarkEngine (single/composite)
+
+  # Phase 7
+  portfolio_analysis.py      PortfolioAnalyzer (allocation, concentration, fees)
+
+  # Phase 8
+  attribution.py            AttributionEngine (Brinson-Fachler)
+
+  # Phase 9
+  risk_metrics.py           RiskMetricsEngine (volatility, Sharpe, etc.)
+
+  # Phase 10
+  correlation.py            CorrelationEngine (holdings correlation)
+
+  # Phase 11
+  risk_contribution.py      RiskContributionEngine (VaR, CVaR, marginal/component VaR)
+
+  # Phase 12
+  stress_testing.py         StressTestEngine (scenario analysis)
+
+  # Phase 13
+  fama_french.py            FamaFrenchEngine (factor regression)
+
+  # Phase 14
+  monte_carlo.py           MonteCarloEngine (simulation, retirement readiness)
+
+  # Phase 15
+  compliance.py             AuditLogger (audit trail, evidence retention)
+
+  adapters/
+    schwab.py               Schwab transaction adapter
+    fidelity.py             Fidelity household adapter
+    positions.py            Custodian positions adapter (contract)
+
+  providers/
+    base.py                 SecurityLookupProvider interface
+    prices.py               PriceProvider implementations
+    caching.py              Caching wrapper
+
   config/
     schwab_type_map.yaml
     fidelity_action_map.yaml
     security_seed.yaml
-  adapters/
-    schwab.py
-    fidelity.py
-    positions.py                 contract/stub only, no concrete implementation yet
-  providers/
-    base.py                       SecurityLookupProvider interface + exception types
-    fmp.py                         Financial Modeling Prep implementation (retry/backoff)
-    caching.py                     on-disk JSON cache wrapper
+
 tests/
-  fixtures/                       Phantom Schwab/Fidelity export files
-  fakes.py                         In-memory fake provider for tests
-  test_*.py
+  fixtures/                 Test data files
+  fakes.py                 In-memory fake providers
+  test_*.py                 Comprehensive test suite
 ```
