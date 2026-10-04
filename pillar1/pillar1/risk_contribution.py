@@ -1,7 +1,10 @@
 """
-Phase 13 — Risk Contribution.
+Phase 11 — VaR / CVaR and Risk Contribution.
 
 Per architecture doc:
+  - Historical VaR: empirical percentile of historical returns (10 years monthly, 120 data points)
+  - Parametric VaR: analytic using volatility from correlation matrix
+  - CVaR/Expected Shortfall: average loss beyond VaR threshold (lowest 5% of returns)
   - Marginal VaR: change in portfolio VaR from a small change in position size
   - Component VaR: position's contribution to overall portfolio VaR
   - Uses correlation matrix from Phase 10
@@ -35,6 +38,9 @@ class PortfolioRiskDecomposition:
     portfolio_var: Optional[Decimal] = None
     portfolio_volatility: Optional[Decimal] = None
     confidence_level: Decimal = Decimal("0.95")  # 95% VaR
+    historical_var: Optional[Decimal] = None  # Historical VaR
+    parametric_var: Optional[Decimal] = None  # Parametric VaR
+    cvar: Optional[Decimal] = None  # CVaR / Expected Shortfall
     contributions: List[RiskContribution] = None
 
 
@@ -43,6 +49,7 @@ class RiskContributionEngine:
     Computes risk contribution metrics for portfolio positions.
 
     Uses parametric VaR with correlation matrix and position weights.
+    Also computes historical VaR and CVaR.
     """
 
     def __init__(self, confidence_level: Decimal = Decimal("0.95")):
@@ -113,6 +120,93 @@ class RiskContributionEngine:
         var = portfolio_value * z_alpha * portfolio_var
 
         return Decimal(str(var))
+
+    def compute_historical_var(
+        self,
+        monthly_returns_df: pd.DataFrame,
+        portfolio_value: Decimal,
+        lookback_months: int = 120,
+    ) -> Optional[Decimal]:
+        """
+        Compute historical VaR from monthly returns.
+
+        Uses empirical percentile of historical monthly returns going back 10 years (120 data points).
+
+        Args:
+            monthly_returns_df: monthly returns with 'period_return' column
+            portfolio_value: current portfolio value
+            lookback_months: number of months to look back (default 120 for 10 years)
+
+        Returns:
+            Historical VaR as Decimal, or None if insufficient data
+        """
+        if monthly_returns_df.empty:
+            return None
+
+        # Get last N months of returns
+        returns = monthly_returns_df.tail(lookback_months)["period_return"].dropna()
+
+        if len(returns) < 20:  # Minimum 20 months required
+            return None
+
+        # Convert to float for numpy
+        returns_float = returns.astype(float)
+
+        # VaR at 95% confidence level is the 5th percentile
+        var_pct = np.percentile(returns_float, 5)
+
+        # VaR in dollars
+        var_dollar = portfolio_value * var_pct
+
+        return Decimal(str(var_dollar))
+
+    def compute_cvar(
+        self,
+        monthly_returns_df: pd.DataFrame,
+        portfolio_value: Decimal,
+        lookback_months: int = 120,
+        tail_percentage: Decimal = Decimal("0.05"),
+    ) -> Optional[Decimal]:
+        """
+        Compute CVaR (Expected Shortfall) from historical returns.
+
+        CVaR is the average loss beyond the VaR threshold (lowest 5% of returns).
+
+        Args:
+            monthly_returns_df: monthly returns with 'period_return' column
+            portfolio_value: current portfolio value
+            lookback_months: number of months to look back (default 120 for 10 years)
+            tail_percentage: percentage of tail to average (default 5%)
+
+        Returns:
+            CVaR as Decimal, or None if insufficient data
+        """
+        if monthly_returns_df.empty:
+            return None
+
+        # Get last N months of returns
+        returns = monthly_returns_df.tail(lookback_months)["period_return"].dropna()
+
+        if len(returns) < 20:  # Minimum 20 months required
+            return None
+
+        # Convert to float for numpy
+        returns_float = returns.astype(float)
+
+        # Sort returns ascending
+        returns_sorted = np.sort(returns_float)
+
+        # Get the lowest 5% of returns
+        tail_count = max(1, int(len(returns_sorted) * float(tail_percentage)))
+        tail_returns = returns_sorted[:tail_count]
+
+        # CVaR is the average of the tail returns
+        cvar_pct = np.mean(tail_returns)
+
+        # CVaR in dollars
+        cvar_dollar = portfolio_value * cvar_pct
+
+        return Decimal(str(cvar_dollar))
 
     def compute_marginal_var(
         self,
@@ -248,7 +342,8 @@ class RiskContributionEngine:
         self,
         daily_positions_df: pd.DataFrame,
         correlation_matrix: pd.DataFrame,
-        as_of_date: date,
+        monthly_returns_df: Optional[pd.DataFrame] = None,
+        as_of_date: Optional[date] = None,
     ) -> PortfolioRiskDecomposition:
         """
         Compute complete risk decomposition.
@@ -256,15 +351,41 @@ class RiskContributionEngine:
         Args:
             daily_positions_df: daily positions from valuation engine
             correlation_matrix: correlation matrix from Phase 10
+            monthly_returns_df: monthly returns for historical VaR/CVaR (optional)
             as_of_date: the date to analyze
 
         Returns:
             PortfolioRiskDecomposition with all risk metrics
         """
-        # Portfolio VaR
-        portfolio_var = self.compute_portfolio_var(
+        if as_of_date is None and not daily_positions_df.empty:
+            as_of_date = daily_positions_df["date"].max()
+
+        if as_of_date is None:
+            return PortfolioRiskDecomposition(
+                confidence_level=self.confidence_level,
+                contributions=[],
+            )
+
+        # Get portfolio value
+        positions = daily_positions_df[daily_positions_df["date"] == as_of_date].copy()
+        portfolio_value = positions["market_value"].sum() if not positions.empty else Decimal("0")
+
+        # Parametric VaR (analytic)
+        parametric_var = self.compute_portfolio_var(
             daily_positions_df, correlation_matrix, as_of_date
         )
+
+        # Historical VaR (empirical)
+        historical_var = None
+        if monthly_returns_df is not None:
+            historical_var = self.compute_historical_var(
+                monthly_returns_df, portfolio_value
+            )
+
+        # CVaR (Expected Shortfall)
+        cvar = None
+        if monthly_returns_df is not None:
+            cvar = self.compute_cvar(monthly_returns_df, portfolio_value)
 
         # Component VaR
         component_contributions = self.compute_component_var(
@@ -272,11 +393,11 @@ class RiskContributionEngine:
         )
 
         # Calculate percentage contributions
-        if portfolio_var and portfolio_var > 0:
+        if parametric_var and parametric_var > 0:
             for contrib in component_contributions:
                 if contrib.component_var is not None:
                     contrib.percentage_contribution = (
-                        contrib.component_var / portfolio_var
+                        contrib.component_var / parametric_var
                     )
                 else:
                     contrib.percentage_contribution = Decimal("0")
@@ -285,9 +406,12 @@ class RiskContributionEngine:
                 contrib.percentage_contribution = Decimal("0")
 
         return PortfolioRiskDecomposition(
-            portfolio_var=portfolio_var,
+            portfolio_var=parametric_var,  # Use parametric as primary
             portfolio_volatility=None,  # Could be computed separately
             confidence_level=self.confidence_level,
+            historical_var=historical_var,
+            parametric_var=parametric_var,
+            cvar=cvar,
             contributions=component_contributions,
         )
 

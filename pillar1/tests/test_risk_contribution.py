@@ -1,5 +1,5 @@
 """
-Tests for Phase 13 Risk Contribution.
+Tests for Phase 11 VaR / CVaR and Risk Contribution.
 """
 
 from datetime import date
@@ -75,6 +75,119 @@ def test_compute_portfolio_var_empty_positions():
     )
 
     assert portfolio_var is None
+
+
+def test_compute_historical_var():
+    """Test historical VaR calculation with 10 years of monthly returns."""
+    # Create 120 months of returns (10 years)
+    monthly_returns = []
+    for i in range(120):
+        monthly_returns.append({"date": date(2014, 1, 1), "period_return": Decimal("0.01")})
+
+    monthly_returns_df = pd.DataFrame(monthly_returns, columns=["date", "period_return"])
+
+    engine = RiskContributionEngine()
+    historical_var = engine.compute_historical_var(
+        monthly_returns_df, portfolio_value=Decimal("10000.00"), lookback_months=120
+    )
+
+    assert historical_var is not None
+    # With all positive returns, VaR should be negative (loss)
+    assert historical_var < 0
+
+
+def test_compute_historical_var_insufficient_data():
+    """Test historical VaR with insufficient data."""
+    monthly_returns = pd.DataFrame(
+        [{"date": date(2024, 1, 1), "period_return": Decimal("0.01")}],
+        columns=["date", "period_return"],
+    )
+
+    engine = RiskContributionEngine()
+    historical_var = engine.compute_historical_var(
+        monthly_returns, portfolio_value=Decimal("10000.00")
+    )
+
+    assert historical_var is None
+
+
+def test_compute_cvar():
+    """Test CVaR calculation from lowest 5% of returns."""
+    # Create returns with some negative outliers
+    monthly_returns = []
+    for i in range(100):
+        # Most returns are positive
+        monthly_returns.append({"date": date(2014, 1, 1), "period_return": Decimal("0.01")})
+
+    # Add some negative returns in the tail
+    for i in range(20):
+        monthly_returns.append({"date": date(2014, 1, 1), "period_return": Decimal("-0.05")})
+
+    monthly_returns_df = pd.DataFrame(monthly_returns, columns=["date", "period_return"])
+
+    engine = RiskContributionEngine()
+    cvar = engine.compute_cvar(
+        monthly_returns_df, portfolio_value=Decimal("10000.00"), lookback_months=120
+    )
+
+    assert cvar is not None
+    # CVaR should be negative (average of negative tail)
+    assert cvar < 0
+
+
+def test_compute_cvar_insufficient_data():
+    """Test CVaR with insufficient data."""
+    monthly_returns = pd.DataFrame(
+        [{"date": date(2024, 1, 1), "period_return": Decimal("0.01")}],
+        columns=["date", "period_return"],
+    )
+
+    engine = RiskContributionEngine()
+    cvar = engine.compute_cvar(
+        monthly_returns, portfolio_value=Decimal("10000.00")
+    )
+
+    assert cvar is None
+
+
+def test_compute_risk_contribution_with_monthly_returns():
+    """Test complete risk decomposition with monthly returns."""
+    daily_positions = pd.DataFrame(
+        [
+            {
+                "account_id": "ACC001",
+                "security_id": "VTI",
+                "date": date(2024, 1, 31),
+                "quantity": Decimal("10"),
+                "market_value": Decimal("5000.00"),
+                "price": Decimal("500.00"),
+            }
+        ],
+        columns=["account_id", "security_id", "date", "quantity", "market_value", "price"],
+    )
+
+    correlation_matrix = pd.DataFrame(
+        {
+            "VTI": [1.0],
+        },
+        index=["VTI"],
+    )
+
+    # Create monthly returns
+    monthly_returns = []
+    for i in range(120):
+        monthly_returns.append({"date": date(2014, 1, 1), "period_return": Decimal("0.01")})
+
+    monthly_returns_df = pd.DataFrame(monthly_returns, columns=["date", "period_return"])
+
+    engine = RiskContributionEngine()
+    decomposition = engine.compute_risk_contribution(
+        daily_positions, correlation_matrix, monthly_returns_df, date(2024, 1, 31)
+    )
+
+    assert decomposition.historical_var is not None
+    assert decomposition.parametric_var is not None
+    assert decomposition.cvar is not None
 
 
 def test_compute_marginal_var():
